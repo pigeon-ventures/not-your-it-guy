@@ -3,12 +3,16 @@
 import logging
 import logging.config
 import os
+import secrets
+from pathlib import Path
 
 import uvicorn
 from dotenv import load_dotenv
 
 load_dotenv()
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import FileResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from not_your_it_guy.routers import responses
 
@@ -51,6 +55,29 @@ app = FastAPI(
 )
 
 app.include_router(responses.router)
+
+_basic = HTTPBasic()
+_FRONTEND_INDEX = Path(os.getenv("FRONTEND_DIR", "frontend")) / "index.html"
+
+
+def _require_basic_auth(credentials: HTTPBasicCredentials = Depends(_basic)) -> None:
+    expected_user = os.getenv("AUTH_USERNAME", "")
+    expected_pass = os.getenv("AUTH_PASSWORD", "")
+    user_ok = secrets.compare_digest(credentials.username.encode(), expected_user.encode())
+    pass_ok = secrets.compare_digest(credentials.password.encode(), expected_pass.encode())
+    if not (user_ok and pass_ok):
+        logger.warning("Failed basic auth attempt")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+
+@app.get("/", dependencies=[Depends(_require_basic_auth)])
+async def serve_index() -> FileResponse:
+    return FileResponse(_FRONTEND_INDEX, media_type="text/html")
+
 
 logger.info("Starting Not Your IT Guy — log level: %s", _log_level)
 
