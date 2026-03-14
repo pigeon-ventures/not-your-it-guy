@@ -26,6 +26,9 @@ COPY --from=builder /app/.venv /app/.venv
 # Copy source (needed at runtime for non-installed editable installs)
 COPY --from=builder /app/src /app/src
 
+# Copy frontend assets
+COPY frontend/ /app/frontend/
+
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
