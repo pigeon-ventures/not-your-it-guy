@@ -8,6 +8,35 @@ from pydantic import BaseModel, Field
 
 
 # ---------------------------------------------------------------------------
+# Router contract — passed from router_service to every subgraph
+# ---------------------------------------------------------------------------
+
+
+class EmployeeOnboardingParams(BaseModel):
+    name: str = ""
+    surname: str = ""
+    email: str = ""
+    phone: str = ""
+    department: str = ""
+    line_manager: str = ""
+
+
+class RouterResult(BaseModel):
+    """Structured output of the semantic router.
+
+    `intent`     — matched subgraph name (e.g. "employee_onboarding") or "unknown"
+    `params`     — intent-specific structured data extracted from the request
+    `raw_input`  — original user message, always forwarded so subgraphs can use it
+    `metadata`   — raw metadata dict from the API request (e.g. pre-filled form fields)
+    """
+
+    intent: str
+    params: EmployeeOnboardingParams = Field(default_factory=EmployeeOnboardingParams)
+    raw_input: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
 # Request
 # ---------------------------------------------------------------------------
 
@@ -67,3 +96,35 @@ class ResponseObject(BaseModel):
     output: list[ResponseOutputMessage]
     usage: ResponseUsage = Field(default_factory=ResponseUsage)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Streaming events (Server-Sent Events)
+# Mirrors the OpenAI Responses API streaming event shapes.
+# ---------------------------------------------------------------------------
+
+
+class StreamEventResponseCreated(BaseModel):
+    type: Literal["response.created"] = "response.created"
+    response: "ResponseObject"
+
+
+class StreamEventTextDelta(BaseModel):
+    type: Literal["response.output_text.delta"] = "response.output_text.delta"
+    item_id: str
+    output_index: int = 0
+    content_index: int = 0
+    delta: str
+
+
+class StreamEventTextDone(BaseModel):
+    type: Literal["response.output_text.done"] = "response.output_text.done"
+    item_id: str
+    output_index: int = 0
+    content_index: int = 0
+    text: str
+
+
+class StreamEventResponseCompleted(BaseModel):
+    type: Literal["response.completed"] = "response.completed"
+    response: "ResponseObject"

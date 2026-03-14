@@ -9,7 +9,12 @@ from pathlib import Path
 import uvicorn
 from dotenv import load_dotenv
 
-load_dotenv()
+# Walk up from src/not_your_it_guy/ to find .env at project root
+_here = Path(__file__).parent
+for _candidate in [_here, _here.parent, _here.parent.parent]:
+    if (_candidate / ".env").exists():
+        load_dotenv(_candidate / ".env", override=True)
+        break
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -80,6 +85,7 @@ async def serve_index() -> FileResponse:
 
 
 logger.info("Starting Not Your IT Guy — log level: %s", _log_level)
+logger.info("API_TOKEN loaded: %s", "yes" if os.getenv("API_TOKEN") else "NO — auth will reject all requests")
 
 
 @app.get("/health")
