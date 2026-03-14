@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>not your it guy</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green: #00ff41;
+      --green-dim: #00b32c;
+      --green-faint: #003b0f;
+      --bg: #020c02;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--green);
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    /* CRT scanlines overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.18) 2px,
+        rgba(0, 0, 0, 0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* CRT flicker */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 255, 65, 0.015);
+      pointer-events: none;
+      z-index: 998;
+      animation: flicker 8s infinite;
+    }
+
+    @keyframes flicker {
+      0%, 95%, 100% { opacity: 1; }
+      96% { opacity: 0.85; }
+      97% { opacity: 1; }
+      98% { opacity: 0.9; }
+    }
+
+    /* Canvas for matrix rain */
+    #matrix-canvas {
+      position: fixed;
+      inset: 0;
+      opacity: 0.18;
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    /* ASCII header */
+    .ascii-header {
+      text-align: center;
+      line-height: 1.2;
+      font-size: clamp(0.45rem, 1.2vw, 0.75rem);
+      color: var(--green);
+      text-shadow: 0 0 8px var(--green);
+      white-space: pre;
+      letter-spacing: 0.05em;
+    }
+
+    .tagline {
+      font-size: 0.8rem;
+      color: var(--green-dim);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      text-align: center;
+      animation: blink-cursor 2.5s step-end infinite;
+    }
+
+    @keyframes blink-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    /* Widget container */
+    .widget-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .widget-label {
+      font-size: 0.65rem;
+      color: var(--green-dim);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    elevenlabs-convai {
+      --el-widget-border-radius: 0px;
+      --el-widget-background: var(--bg);
+      filter: drop-shadow(0 0 12px var(--green));
+    }
+
+    /* Status bar */
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.35rem 1rem;
+      font-size: 0.6rem;
+      color: var(--green-dim);
+      border-top: 1px solid var(--green-faint);
+      background: rgba(2, 12, 2, 0.85);
+      z-index: 2;
+      letter-spacing: 0.15em;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 0.4rem;
+      animation: pulse 2s ease-in-out infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--green); }
+      50% { opacity: 0.4; box-shadow: none; }
+    }
+
+    #clock {
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+
+<div class="shell">
+  <pre class="ascii-header">
+ ███╗   ██╗ ██████╗ ████████╗    ██╗   ██╗ ██████╗ ██╗   ██╗██████╗
+ ████╗  ██║██╔═══██╗╚══██╔══╝    ╚██╗ ██╔╝██╔═══██╗██║   ██║██╔══██╗
+ ██╔██╗ ██║██║   ██║   ██║        ╚████╔╝ ██║   ██║██║   ██║██████╔╝
+ ██║╚██╗██║██║   ██║   ██║         ╚██╔╝  ██║   ██║██║   ██║██╔══██╗
+ ██║ ╚████║╚██████╔╝   ██║          ██║   ╚██████╔╝╚██████╔╝██║  ██║
+ ╚═╝  ╚═══╝ ╚═════╝    ╚═╝          ╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
+
+                         ██╗████████╗     ██████╗ ██╗   ██╗██╗   ██╗
+                         ██║╚══██╔══╝    ██╔════╝ ██║   ██║╚██╗ ██╔╝
+                         ██║   ██║       ██║  ███╗██║   ██║ ╚████╔╝
+                         ██║   ██║       ██║   ██║██║   ██║  ╚██╔╝
+                         ██║   ██║       ╚██████╔╝╚██████╔╝   ██║
+                         ╚═╝   ╚═╝        ╚═════╝  ╚═════╝    ╚═╝
+  </pre>
+
+  <div class="tagline">// initializing voice interface...</div>
+
+  <div class="widget-wrap">
+    <span class="widget-label">[ speak ]</span>
+    <elevenlabs-convai agent-id="agent_8801kkp761n0frtafyt2m4f9dnrr"></elevenlabs-convai>
+  </div>
+</div>
+
+<div class="status-bar">
+  <span><span class="status-dot"></span>SYSTEM ONLINE &nbsp;|&nbsp; not-your-it-guy v0.1.0</span>
+  <span id="clock"></span>
+</div>
+
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+
+<script>
+  // Clock
+  function tick() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // Matrix rain
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+  const CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>{}[]|/\\'.split('');
+  let cols, drops;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols  = Math.floor(canvas.width / 16);
+    drops = Array(cols).fill(1);
+  }
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(2, 12, 2, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '14px "Share Tech Mono", monospace';
+    drops.forEach((y, i) => {
+      const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+      ctx.fillText(char, i * 16, y * 16);
+      if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(drawMatrix, 50);
+</script>
+
+</body>
+</html>
