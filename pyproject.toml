@@ -1,0 +1,22 @@
+[project]
+name = "not-your-it-guy"
+version = "0.1.0"
+description = "OpenAI-compatible agent backend"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+]
+
+[project.scripts]
+serve = "not_your_it_guy.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/not_your_it_guy"]
+
