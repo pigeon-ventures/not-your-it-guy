@@ -3,9 +3,10 @@
 import json
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from not_your_it_guy.auth import require_auth
 from not_your_it_guy.models import (
     OutputTextContent,
     ResponseObject,
@@ -15,7 +16,7 @@ from not_your_it_guy.models import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/v1", tags=["responses"])
+router = APIRouter(prefix="/v1", tags=["responses"], dependencies=[Depends(require_auth)])
 
 
 @router.post("/responses")
