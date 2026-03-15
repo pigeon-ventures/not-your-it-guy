@@ -158,8 +158,8 @@ When an onboarding request is received:
    - Generates a 12-character random temporary password
    - Stores SHA-256 hash of the password in the `employees` table
    - Inserts: `name`, `surname`, `corporate_email`, `private_email`, `phone`, `department`, `line_manager`
-4. **SMS mock** (`sms_service`): logs the temporary password to console — replace with Twilio when ready
-5. **Welcome email mock** (`welcome_email_service`): logs the welcome email to console — replace with Resend when ready
+4. **SMS** (`sms_service` → `twilio_sms_tool`): sends temporary password via Twilio SMS — logs to console if `TWILIO_*` vars not set
+5. **Welcome email** (`welcome_email_service` → `sendgrid_email_tool`): sends welcome email to private inbox via SendGrid — logs to console if `SENDGRID_API_KEY` not set
 
 ### SMS mock log example
 
@@ -169,20 +169,29 @@ When an onboarding request is received:
 
 ### Welcome email content (sent to private inbox)
 
+Delivered via SendGrid. Falls back to console log if `SENDGRID_API_KEY` is not set.
+
 ```
-Hi John,
+  >> JESSICA
+  >> YOUR AI IT ADMIN
+  >> B2 CORP
 
-You have been successfully onboarded at B2 company!
+Hey John,
 
-Your corporate email address is: john.doe@b2.com
-Your temporary password was sent to: +1 555 123 4567
+Account provisioned. You're in.
 
-Useful links:
-- Microsoft mailbox: https://outlook.cloud.microsoft/
-- Notion: https://www.notion.so/ (invite sent to corporate email)
-- Microsoft Teams: https://teams.microsoft.com/
+  CORP EMAIL    : john.doe@b2.com
+  TEMP PASSWORD : sent via SMS to +1 555 123 4567
 
-We're happy you're with us!
+[!] Change your password on first login.
+
+Access your tools:
+  - Microsoft Mailbox : https://outlook.cloud.microsoft/
+  - Notion            : https://www.notion.so/ (invite sent to corporate email)
+  - Microsoft Teams   : https://teams.microsoft.com/
+
+I'll be around if you need anything. Just ask.
+— Jessica, your AI IT Admin
 ```
 
 ---
@@ -261,6 +270,11 @@ docker run --rm -p 8000:8000 --env-file .env not-your-it-guy:dev
 | `AUTH_USERNAME` | frontend basic auth username |
 | `AUTH_PASSWORD` | frontend basic auth password |
 | `DEBUG` | `false` (or `true` for verbose logs) |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_FROM_NUMBER` | Twilio sender number (E.164, e.g. `+19047204944`) |
+| `SENDGRID_API_KEY` | SendGrid API key |
+| `SENDGRID_FROM_EMAIL` | Verified sender address |
 
 Migrations run automatically on every deploy.
 
@@ -280,10 +294,11 @@ All config via environment variables. Copy `.env.example` to `.env` for local de
 | `AUTH_PASSWORD` | `changeme` | HTTP Basic Auth password for frontend |
 | `DEBUG` | `false` | Enable DEBUG-level logging |
 | `PORT` | `8000` | Server port |
-| `RESEND_API_KEY` | — | Resend API key — welcome emails logged to console if not set |
-| `TWILIO_ACCOUNT_SID` | — | Twilio SID — SMS logged to console if not set |
+| `SENDGRID_API_KEY` | — | SendGrid API key — welcome emails logged to console if not set |
+| `SENDGRID_FROM_EMAIL` | — | Verified sender address (single sender or domain auth) |
+| `TWILIO_ACCOUNT_SID` | — | Twilio account SID — SMS logged to console if not set |
 | `TWILIO_AUTH_TOKEN` | — | Twilio auth token |
-| `TWILIO_FROM_NUMBER` | — | Twilio sender number |
+| `TWILIO_FROM_NUMBER` | — | Twilio sender number (E.164 format, e.g. `+14155552671`) |
 
 ---
 
@@ -355,11 +370,13 @@ src/not_your_it_guy/
 │   ├── subgraph_factory.py          # Registry of available subgraphs
 │   ├── entra_id_mock_service.py     # Mock AD: corporate email derivation, password gen, DB insert
 │   ├── sms_service.py               # SMS mock (Twilio stub) — sends temp password
-│   └── welcome_email_service.py     # Email mock (Resend stub) — sends welcome email
+│   └── welcome_email_service.py     # Welcome email via SendGrid — sends to private inbox
 ├── subgraphs/
 │   └── employee_onboarding.py       # Employee onboarding LangGraph subgraph
 └── tools/
-    └── ad_user_tool.py              # LangChain @tool wrapping entra_id_mock_service
+    ├── ad_user_tool.py              # LangChain @tool wrapping entra_id_mock_service
+    ├── twilio_sms_tool.py           # Twilio SMS via LangChain TwilioAPIWrapper
+    └── sendgrid_email_tool.py       # SendGrid email via SendGrid Python SDK
 
 src/migrations/
 ├── env.py

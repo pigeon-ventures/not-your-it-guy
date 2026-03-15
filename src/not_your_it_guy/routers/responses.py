@@ -166,7 +166,7 @@ async def create_response(request: ResponseRequest) -> StreamingResponse | Respo
     )
 
     logger.info(
-        "Outgoing response:\n%s",
+        "Outgoing response:\n{}",
         json.dumps(response.model_dump(), indent=2, default=str),
     )
     return response

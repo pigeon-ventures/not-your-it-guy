@@ -17,6 +17,9 @@ dependencies = [
     "psycopg[binary]>=3.1.0",
     "sqlalchemy-utils>=0.41.0",
     "loguru>=0.7.3",
+    "twilio>=9.10.3",
+    "langchain-community>=0.4.1",
+    "sendgrid>=6.11.0",
 ]
 
 [project.scripts]

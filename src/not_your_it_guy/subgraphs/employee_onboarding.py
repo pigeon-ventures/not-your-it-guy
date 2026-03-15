@@ -112,7 +112,7 @@ async def create_ad_user_node(state: OnboardingState) -> OnboardingState:
         )
     except Exception as exc:
         logger.exception("[employee_onboarding] unexpected error during AD user creation")
-        output = f"Onboarding could not be completed due to an unexpected error: {exc}"
+        output = "Onboarding could not be completed due to an unexpected error. Please contact AI Automation team."
 
     return {**state, "output": output}
 
