@@ -62,7 +62,9 @@ app = FastAPI(
 app.include_router(responses.router)
 
 _basic = HTTPBasic()
-_FRONTEND_INDEX = Path(os.getenv("FRONTEND_DIR", "frontend")) / "index.html"
+_FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", "frontend"))
+_FRONTEND_INDEX = _FRONTEND_DIR / "index.html"
+_FRONTEND_V2_INDEX = _FRONTEND_DIR / "v2" / "index.html"
 
 
 def _require_basic_auth(credentials: HTTPBasicCredentials = Depends(_basic)) -> None:
@@ -82,6 +84,11 @@ def _require_basic_auth(credentials: HTTPBasicCredentials = Depends(_basic)) -> 
 @app.get("/", dependencies=[Depends(_require_basic_auth)])
 async def serve_index() -> FileResponse:
     return FileResponse(_FRONTEND_INDEX, media_type="text/html")
+
+
+@app.get("/v2", dependencies=[Depends(_require_basic_auth)])
+async def serve_v2() -> FileResponse:
+    return FileResponse(_FRONTEND_V2_INDEX, media_type="text/html")
 
 
 logger.info("Starting Not Your IT Guy — log level: %s", _log_level)

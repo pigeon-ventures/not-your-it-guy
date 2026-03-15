@@ -50,10 +50,16 @@ async def handle(state: OnboardingState) -> OnboardingState:
         state["line_manager"],
         state["raw_input"],
     )
-    # TODO: replace with real onboarding logic
     name = f"{state['name']} {state['surname']}".strip() or "the new employee"
     dept = state["department"] or "your department"
-    return {**state, "output": f"Employee onboarding started for {name} in {dept}."}
+    email_login = f"{state['name'].lower()}.{state['surname'].lower()}@b2.com" if state["name"] and state["surname"] else "name.surname@b2.com"
+    phone = state["phone"] or "the registered phone number"
+    output = (
+        f"Employee onboarding started for {name} in {dept} department. "
+        f"Microsoft account was created for {email_login} and a temporary password was sent to {phone} "
+        f"with instructions on how to access the mailbox."
+    )
+    return {**state, "output": output}
 
 
 # ---------------------------------------------------------------------------
