@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 class EmployeeOnboardingParams(BaseModel):
     name: str = ""
     surname: str = ""
-    email: str = ""
+    email: str = ""          # private email (from the request metadata)
     phone: str = ""
     department: str = ""
     line_manager: str = ""

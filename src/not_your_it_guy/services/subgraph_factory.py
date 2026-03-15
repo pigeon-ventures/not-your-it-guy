@@ -6,7 +6,7 @@ and yields str chunks.
 Add a new subgraph by importing it and adding an entry to SUBGRAPHS.
 """
 
-import logging
+from not_your_it_guy.logger.logger_provider import get_logger
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Callable
 
@@ -15,7 +15,7 @@ from not_your_it_guy.subgraphs import employee_onboarding
 if TYPE_CHECKING:
     from not_your_it_guy.models import RouterResult
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ def get(intent: str) -> StreamFn | None:
     """Return the stream function for the given intent, or None if unknown."""
     fn = SUBGRAPHS.get(intent)
     if fn is None:
-        logger.warning("subgraph_factory: no subgraph registered for intent=%r", intent)
+        logger.warning("subgraph_factory: no subgraph registered for intent={}", intent)
     return fn
 
 

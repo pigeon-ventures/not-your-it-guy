@@ -12,10 +12,16 @@ dependencies = [
     "langgraph>=0.3.0",
     "langchain-openai>=0.3.0",
     "python-dotenv>=1.0.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
+    "psycopg[binary]>=3.1.0",
+    "sqlalchemy-utils>=0.41.0",
+    "loguru>=0.7.3",
 ]
 
 [project.scripts]
 serve = "not_your_it_guy.main:main"
+start = "not_your_it_guy.main:serve"
 
 [build-system]
 requires = ["hatchling"]

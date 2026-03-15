@@ -9,7 +9,7 @@ Returns a RouterResult which is the contract passed to every subgraph.
 """
 
 import json
-import logging
+from not_your_it_guy.logger.logger_provider import get_logger
 import os
 
 from openai import AsyncOpenAI
@@ -17,7 +17,7 @@ from openai import AsyncOpenAI
 from not_your_it_guy.models import EmployeeOnboardingParams, RouterResult
 from not_your_it_guy.services.subgraph_factory import known_intents
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 _client: AsyncOpenAI | None = None
 
@@ -66,7 +66,7 @@ def _keyword_match(text: str) -> str | None:
         if intent not in known_intents():
             continue
         if any(kw in lower for kw in keywords):
-            logger.info("router_service: keyword match → intent=%r", intent)
+            logger.info("router_service: keyword match → intent={}", intent)
             return intent
     return None
 
@@ -163,7 +163,7 @@ async def _llm_classify(user_input: str, metadata: dict) -> tuple[str, dict]:
         intent = parsed.get("intent", "unknown").strip().lower()
         params = parsed.get("params", {})
         if intent not in intents:
-            logger.info("router_service: LLM returned unknown intent=%r", intent)
+            logger.info("router_service: LLM returned unknown intent={}", intent)
             intent = "unknown"
         return intent, params
     except Exception:
@@ -218,7 +218,7 @@ async def detect_intent(user_input: str, metadata: dict | None = None) -> Router
     )
 
     logger.info(
-        "router_service: intent=%r name=%r dept=%r",
+        "router_service: intent={} name={} dept={}",
         result.intent,
         result.params.name,
         result.params.department,

@@ -29,10 +29,14 @@ COPY --from=builder /app/src /app/src
 # Copy frontend assets
 COPY frontend/ /app/frontend/
 
+# Copy alembic config and migrations
+COPY alembic.ini /app/alembic.ini
+COPY src/migrations/ /app/src/migrations/
+
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "not_your_it_guy.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["start"]

@@ -1,7 +1,7 @@
 """POST /v1/responses — OpenAI Responses API with streaming support."""
 
 import json
-import logging
+from not_your_it_guy.logger.logger_provider import get_logger
 import uuid
 from collections.abc import AsyncIterator
 
@@ -22,7 +22,7 @@ from not_your_it_guy.models import (
 )
 from not_your_it_guy.services import router_service, subgraph_factory
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 router = APIRouter(prefix="/v1", tags=["responses"], dependencies=[Depends(require_auth)])
 
 _FALLBACK_TEXT = (
@@ -60,8 +60,8 @@ async def _stream_response(request: ResponseRequest) -> AsyncIterator[bytes]:
     msg_id = f"msg_{uuid.uuid4().hex[:24]}"
     user_text = _extract_text(request)
 
-    logger.debug("POST /v1/responses stream=True model=%s input=%r", request.model, user_text)
-    logger.info("Incoming streaming request | model=%s | input=%r", request.model, user_text)
+    logger.debug("POST /v1/responses stream=True model={} input={}", request.model, user_text)
+    logger.info("Incoming streaming request | model={} | input={}", request.model, user_text)
 
     # ── response.created ────────────────────────────────────────────────────
     yield _sse(
@@ -82,7 +82,7 @@ async def _stream_response(request: ResponseRequest) -> AsyncIterator[bytes]:
     chunks: AsyncIterator[str]
 
     if stream_fn is None:
-        logger.info("No subgraph for intent=%r — streaming fallback", router_result.intent)
+        logger.info("No subgraph for intent={} — streaming fallback", router_result.intent)
         chunks = _fallback_stream()
     else:
         chunks = stream_fn(router_result)
@@ -131,7 +131,7 @@ async def _fallback_stream() -> AsyncIterator[str]:
 
 @router.post("/responses", response_model=None)
 async def create_response(request: ResponseRequest) -> StreamingResponse | ResponseObject:
-    logger.debug("POST /v1/responses model=%s stream=%s", request.model, request.stream)
+    logger.debug("POST /v1/responses model={} stream={}", request.model, request.stream)
     logger.info(
         "Incoming request:\n%s",
         json.dumps(request.model_dump(), indent=2, default=str),
@@ -151,7 +151,7 @@ async def create_response(request: ResponseRequest) -> StreamingResponse | Respo
 
     full_text = ""
     if stream_fn is None:
-        logger.info("No subgraph for intent=%r — using fallback", router_result.intent)
+        logger.info("No subgraph for intent={} — using fallback", router_result.intent)
         async for chunk in _fallback_stream():
             full_text += chunk
     else:

@@ -1,12 +1,12 @@
 """Bearer token authentication dependency."""
 
-import logging
+from not_your_it_guy.logger.logger_provider import get_logger
 import os
 
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 _bearer = HTTPBearer(auto_error=False)
 
